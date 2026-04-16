@@ -100,8 +100,27 @@ if _st_index.exists():
     _idx_text = _st_index.read_text(encoding="utf-8")
     if _GOOGLE_VERIF not in _idx_text:
         _idx_text = _idx_text.replace("<head>", "<head>\n" + _SEO_INJECT, 1)
-        _st_index.write_text(_idx_text, encoding="utf-8")
-        st.toast("SEO: Meta tags inyectados en index.html. Recarga la pagina.", icon="✅")
+        try:
+            import os as _os
+            _os.chmod(str(_st_index), 0o666)  # Intentar hacer escribible
+            _st_index.write_text(_idx_text, encoding="utf-8")
+        except (PermissionError, OSError):
+            pass  # Streamlit Cloud: read-only — se usa fallback JS abajo
+
+# Fallback JS para Streamlit Cloud (cuando index.html es read-only)
+if _st_index.exists() and _GOOGLE_VERIF not in _st_index.read_text(encoding="utf-8"):
+    import streamlit.components.v1 as _stc_seo
+    _stc_seo.html("""<script>
+    try {
+      var h = window.parent.document.head;
+      if (!h.querySelector('meta[name="google-site-verification"]')) {
+        var m = document.createElement('meta');
+        m.name = 'google-site-verification';
+        m.content = '""" + _GOOGLE_VERIF + """';
+        h.appendChild(m);
+      }
+    } catch(e) {}
+    </script>""", height=0)
 
 tz_col = pytz.timezone('America/Bogota')
 NOW    = datetime.now(tz_col)
