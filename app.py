@@ -71,6 +71,21 @@ st.set_page_config(
         )
     }
 )
+
+# ══ SEO: Meta tags para Google (inyectados en <head> de Streamlit) ═════
+st.markdown("""
+<meta name="google-site-verification" content="Hz0K7ER45v1QDyF9dNBOv9CrP2X25KCqCdHSCCi5wFU" />
+<meta name="description" content="Simulador pensional gratuito para Colombia (Reforma 2024). Calcula tu IBC, semanas (C-197/23) y pilares de jubilación según la Ley 2381 de 2024." />
+<meta name="keywords" content="reforma pensional 2024, simulador pensiones colombia, calcular semanas mujer, independientes ugpp 2026, pension colombia 2026, colpensiones, afp, ley 2381, sentencia c-197" />
+<meta name="author" content="Carlos Mauricio Moreno" />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="https://simulador-pensional-colombia.streamlit.app/" />
+<meta property="og:title" content="Simulador Pensional Colombia 2026 — Calcula tu pensión gratis" />
+<meta property="og:description" content="Herramienta gratuita de proyección actuarial. Ley 100, Reforma de Pilares 2024, Sentencia C-197/2023." />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="es_CO" />
+""", unsafe_allow_html=True)
+
 tz_col = pytz.timezone('America/Bogota')
 NOW    = datetime.now(tz_col)
 AO     = NOW.year
@@ -571,6 +586,8 @@ def krow(*items):
     return f"<div style='display:flex;flex-wrap:wrap;gap:3px;margin:8px 0'>{cols}</div>"
 
 def hr():  return "<hr style='border:none;border-top:1px solid #334155;margin:20px 0'/>"
+def h1(t): return f"<h1 style='color:#f1f5f9;font-size:1.6em;margin:0 0 6px;font-weight:700'>{t}</h1>"
+def h2(t): return f"<h2 style='color:#e2e8f0;font-size:1.25em;margin:18px 0 10px'>{t}</h2>"
 def h3(t): return f"<h3 style='color:#e2e8f0;margin:0 0 12px'>{t}</h3>"
 def h4(t): return f"<h4 style='color:#93c5fd;margin:14px 0 8px'>{t}</h4>"
 
@@ -1452,6 +1469,11 @@ html += ("<hr style='border:none;border-top:1px solid #334155;margin:22px 0'/>"
 # ═════════════════════════════════════════════════════════════
 _h = max(2600, min(len(html) // 6, 8500))
 
+# Pre-computar valores para FAQ (evitar escaping en f-string)
+_faq_tope   = f"${int(TOPE_UGPP):,}"
+_faq_umbral = f"${int(UMBRAL):,}"
+_faq_sr_m   = f"{SR_MUJER_AO:,}"
+
 _full = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1470,7 +1492,23 @@ _full = f"""<!DOCTYPE html>
 <body>
 {html}
 
-<div style="margin-top:40px;padding:20px 0;border-top:1px solid #334155;color:#64748b;font-size:0.78em;text-align:center;line-height:1.7">
+<div style="margin-top:40px;padding:20px 16px;border-top:1px solid #334155;color:#cbd5e1;font-size:0.82em;line-height:1.8">
+  <h2 style="color:#e2e8f0;font-size:1.15em;margin:0 0 14px;text-align:center">Preguntas Frecuentes sobre la Pensión en Colombia ({AO})</h2>
+
+  <h3 style="color:#93c5fd;font-size:0.95em;margin:14px 0 4px">¿Cuál es el tope de la UGPP para cotizar en {AO}?</h3>
+  <p style="margin:0 0 10px">El tope máximo de cotización (IBC) en Colombia es de 25 Salarios Mínimos (SMMLV). Para el año {AO}, este valor es de <b>{_faq_tope}</b> COP. Cualquier ingreso por encima de este monto no genera aportes adicionales a seguridad social.</p>
+
+  <h3 style="color:#93c5fd;font-size:0.95em;margin:14px 0 4px">¿Cómo saber a qué pilar de la reforma pensional pertenezco?</h3>
+  <p style="margin:0 0 10px">Depende de tu Ingreso Base de Cotización (IBC). Si ganas hasta 2.3 SMMLV (<b>{_faq_umbral}</b> COP), perteneces al Pilar Contributivo de Colpensiones. Si ganas más, el excedente se aporta al Pilar de Ahorro Individual (AFP).</p>
+
+  <h3 style="color:#93c5fd;font-size:0.95em;margin:14px 0 4px">¿Cómo se reducen las semanas de pensión para las mujeres?</h3>
+  <p style="margin:0 0 10px">Gracias a la Sentencia C-197 de 2023, las mujeres en Colombia ven una reducción gradual de 1.300 a 1.000 semanas. A partir de 2025 disminuyen 25 semanas cada año. Para el año {AO}, el requisito es de <b>{_faq_sr_m}</b> semanas.</p>
+
+  <h3 style="color:#93c5fd;font-size:0.95em;margin:14px 0 4px">¿Puedo pensionarme si vivo en el exterior?</h3>
+  <p style="margin:0 0 10px">Sí. Los colombianos en el exterior pueden cotizar voluntariamente a pensión a través de la planilla PILA como ‘Colombiano en el Exterior’, estando exentos del aporte a salud (EPS).</p>
+</div>
+
+<div style="margin-top:12px;padding:18px 0;border-top:1px solid #334155;color:#64748b;font-size:0.78em;text-align:center;line-height:1.7">
   <b>¿Cómo funciona este simulador?</b><br>
   Ingresa tus datos en el panel izquierdo (edad, semanas, fondo, ingresos, hijos, SISBÉN).<br>
   El sistema cruza automáticamente tu perfil con la <b>Ley 100/1993</b>, <b>Ley 2381/2024 (Reforma de Pilares)</b>,
@@ -1478,9 +1516,10 @@ _full = f"""<!DOCTYPE html>
   semanas requeridas, mesada estimada, optimización fiscal y plan de acción personalizado.<br>
   <b>Nota:</b> Esta herramienta es informativa. Consulta siempre con tu fondo o un abogado pensional.
   <br><br>
-  <span style="color:#94a3b8">© {AO} — Desarrollado por <b>Mauricio Moreno</b>
+  <span style="color:#94a3b8">© {AO} — Desarrollado por <b>Carlos Mauricio Moreno</b>
   &middot; <a href="mailto:triplemauricio@gmail.com" style="color:#60a5fa;text-decoration:none">triplemauricio@gmail.com</a>
-  &middot; Simulador Pensional Colombia</span>
+  &middot; Simulador Pensional Colombia</span><br>
+  <span style="color:#64748b;font-size:0.9em;font-style:italic">Este laboratorio matemático utiliza algoritmos de precisión actuarial para la planeación financiera ciudadana.</span>
 </div>
 <script>
   function ajustar() {{
