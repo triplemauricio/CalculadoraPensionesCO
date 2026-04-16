@@ -72,45 +72,36 @@ st.set_page_config(
     }
 )
 
-# ══ SEO: Inyección de meta tags en el <head> REAL de Streamlit ═════
-# st.markdown solo inyecta en <body>. Para que Google encuentre las
-# meta tags en <head>, usamos JavaScript que las mueve al head real.
-import streamlit.components.v1 as _stc_seo
-_stc_seo.html("""
-<script>
-try {
-  var head = window.parent.document.head;
-  var metas = [
-    {name:'google-site-verification', content:'Hz0K7ER45v1QDyF9dNBOv9CrP2X25KCqCdHSCCi5wFU'},
-    {name:'description', content:'Simulador pensional gratuito para Colombia (Reforma 2024). Calcula tu IBC, semanas (C-197/23) y pilares de jubilaci\u00f3n seg\u00fan la Ley 2381 de 2024.'},
-    {name:'keywords', content:'reforma pensional 2024, simulador pensiones colombia, calcular semanas mujer, independientes ugpp 2026, pension colombia 2026, colpensiones, afp, ley 2381, sentencia c-197'},
-    {name:'author', content:'Carlos Mauricio Moreno'},
-    {name:'robots', content:'index, follow'}
-  ];
-  metas.forEach(function(m) {
-    if (!head.querySelector('meta[name="'+m.name+'"]')) {
-      var el = document.createElement('meta');
-      el.name = m.name; el.content = m.content;
-      head.appendChild(el);
-    }
-  });
-  // Open Graph
-  var ogs = [
-    {property:'og:title', content:'Simulador Pensional Colombia 2026'},
-    {property:'og:description', content:'Herramienta gratuita de proyecci\u00f3n actuarial. Ley 100, Reforma de Pilares 2024, Sentencia C-197/2023.'},
-    {property:'og:type', content:'website'},
-    {property:'og:locale', content:'es_CO'}
-  ];
-  ogs.forEach(function(o) {
-    if (!head.querySelector('meta[property="'+o.property+'"]')) {
-      var el = document.createElement('meta');
-      el.setAttribute('property', o.property); el.content = o.content;
-      head.appendChild(el);
-    }
-  });
-} catch(e) {}
-</script>
-""", height=0)
+# ══ SEO DEFINITIVO: Parche directo al index.html de Streamlit ══════
+# Streamlit controla el <head>. Ni st.markdown ni JS pueden inyectar
+# meta tags ahi de forma confiable para crawlers de Google.
+# Solucion: parchear el archivo index.html de Streamlit directamente.
+import pathlib as _pathlib
+
+_GOOGLE_VERIF = 'Hz0K7ER45v1QDyF9dNBOv9CrP2X25KCqCdHSCCi5wFU'
+_SEO_INJECT = (
+    '<meta name="google-site-verification" content="' + _GOOGLE_VERIF + '" />\n'
+    '<meta name="description" content="Simulador pensional gratuito para Colombia (Reforma 2024). '
+    'Calcula tu IBC, semanas (C-197/23) y pilares de jubilacion segun la Ley 2381 de 2024." />\n'
+    '<meta name="keywords" content="reforma pensional 2024, simulador pensiones colombia, '
+    'calcular semanas mujer, independientes ugpp 2026, pension colombia 2026, colpensiones, '
+    'afp, ley 2381, sentencia c-197" />\n'
+    '<meta name="author" content="Carlos Mauricio Moreno" />\n'
+    '<meta name="robots" content="index, follow" />\n'
+    '<meta property="og:title" content="Simulador Pensional Colombia 2026" />\n'
+    '<meta property="og:description" content="Herramienta gratuita de proyeccion actuarial. '
+    'Ley 100, Reforma de Pilares 2024, Sentencia C-197/2023." />\n'
+    '<meta property="og:type" content="website" />\n'
+    '<meta property="og:locale" content="es_CO" />\n'
+)
+
+_st_index = _pathlib.Path(st.__file__).parent / "static" / "index.html"
+if _st_index.exists():
+    _idx_text = _st_index.read_text(encoding="utf-8")
+    if _GOOGLE_VERIF not in _idx_text:
+        _idx_text = _idx_text.replace("<head>", "<head>\n" + _SEO_INJECT, 1)
+        _st_index.write_text(_idx_text, encoding="utf-8")
+        st.toast("SEO: Meta tags inyectados en index.html. Recarga la pagina.", icon="✅")
 
 tz_col = pytz.timezone('America/Bogota')
 NOW    = datetime.now(tz_col)
