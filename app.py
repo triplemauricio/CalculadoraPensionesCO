@@ -72,19 +72,45 @@ st.set_page_config(
     }
 )
 
-# ══ SEO: Meta tags para Google (inyectados en <head> de Streamlit) ═════
-st.markdown("""
-<meta name="google-site-verification" content="Hz0K7ER45v1QDyF9dNBOv9CrP2X25KCqCdHSCCi5wFU" />
-<meta name="description" content="Simulador pensional gratuito para Colombia (Reforma 2024). Calcula tu IBC, semanas (C-197/23) y pilares de jubilación según la Ley 2381 de 2024." />
-<meta name="keywords" content="reforma pensional 2024, simulador pensiones colombia, calcular semanas mujer, independientes ugpp 2026, pension colombia 2026, colpensiones, afp, ley 2381, sentencia c-197" />
-<meta name="author" content="Carlos Mauricio Moreno" />
-<meta name="robots" content="index, follow" />
-<link rel="canonical" href="https://simulador-pensional-colombia.streamlit.app/" />
-<meta property="og:title" content="Simulador Pensional Colombia 2026 — Calcula tu pensión gratis" />
-<meta property="og:description" content="Herramienta gratuita de proyección actuarial. Ley 100, Reforma de Pilares 2024, Sentencia C-197/2023." />
-<meta property="og:type" content="website" />
-<meta property="og:locale" content="es_CO" />
-""", unsafe_allow_html=True)
+# ══ SEO: Inyección de meta tags en el <head> REAL de Streamlit ═════
+# st.markdown solo inyecta en <body>. Para que Google encuentre las
+# meta tags en <head>, usamos JavaScript que las mueve al head real.
+import streamlit.components.v1 as _stc_seo
+_stc_seo.html("""
+<script>
+try {
+  var head = window.parent.document.head;
+  var metas = [
+    {name:'google-site-verification', content:'Hz0K7ER45v1QDyF9dNBOv9CrP2X25KCqCdHSCCi5wFU'},
+    {name:'description', content:'Simulador pensional gratuito para Colombia (Reforma 2024). Calcula tu IBC, semanas (C-197/23) y pilares de jubilaci\u00f3n seg\u00fan la Ley 2381 de 2024.'},
+    {name:'keywords', content:'reforma pensional 2024, simulador pensiones colombia, calcular semanas mujer, independientes ugpp 2026, pension colombia 2026, colpensiones, afp, ley 2381, sentencia c-197'},
+    {name:'author', content:'Carlos Mauricio Moreno'},
+    {name:'robots', content:'index, follow'}
+  ];
+  metas.forEach(function(m) {
+    if (!head.querySelector('meta[name="'+m.name+'"]')) {
+      var el = document.createElement('meta');
+      el.name = m.name; el.content = m.content;
+      head.appendChild(el);
+    }
+  });
+  // Open Graph
+  var ogs = [
+    {property:'og:title', content:'Simulador Pensional Colombia 2026'},
+    {property:'og:description', content:'Herramienta gratuita de proyecci\u00f3n actuarial. Ley 100, Reforma de Pilares 2024, Sentencia C-197/2023.'},
+    {property:'og:type', content:'website'},
+    {property:'og:locale', content:'es_CO'}
+  ];
+  ogs.forEach(function(o) {
+    if (!head.querySelector('meta[property="'+o.property+'"]')) {
+      var el = document.createElement('meta');
+      el.setAttribute('property', o.property); el.content = o.content;
+      head.appendChild(el);
+    }
+  });
+} catch(e) {}
+</script>
+""", height=0)
 
 tz_col = pytz.timezone('America/Bogota')
 NOW    = datetime.now(tz_col)
@@ -1487,6 +1513,9 @@ _full = f"""<!DOCTYPE html>
     padding:6px 10px 28px; overflow-x:hidden;
   }}
   b {{ font-weight:600 }} table {{ font-size:13px }}
+<meta name="google-site-verification" content="Hz0K7ER45v1QDyF9dNBOv9CrP2X25KCqCdHSCCi5wFU" />
+<meta name="description" content="Simulador pensional gratuito Colombia 2026. Calcula IBC, semanas C-197, pilares Ley 2381." />
+<meta name="author" content="Carlos Mauricio Moreno" />
 </style>
 </head>
 <body>
