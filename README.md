@@ -13,13 +13,6 @@ Herramienta gratuita de proyección actuarial para el sistema pensional colombia
 pip install -r requirements.txt
 streamlit run app.py
 ```
-
-## Deploy en Streamlit Cloud
-1. Sube este repositorio a GitHub
-2. Ve a [share.streamlit.io](https://share.streamlit.io)
-3. Conecta tu cuenta de GitHub
-4. Selecciona el repositorio y `app.py`
-5. Click en **Deploy**
-
+⚖️ Análisis educativo y orientativo. No reemplaza asesoría jurídica, financiera ni tributaria certificada.
 ## Autor
 **Mauricio Moreno** — triplemauricio@gmail.com
